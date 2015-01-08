@@ -23,8 +23,8 @@ SERF_AGENT_CONF_DIR=<%= @helper.getHomeConfigDirectory %>
 SERF_USER=<%= node["serf"]["user"] %>
 
 SLEEP_TIME=5
-CURRENT_WAIT=0
-TIMEOUT=30
+CURRENT_WAIT=30
+TIMEOUT=60
 
 start() {
     findPid
@@ -64,7 +64,9 @@ stop() {
         CURRENT_WAIT=$(($CURRENT_WAIT+$SLEEP_TIME))
         if [[ $CURRENT_WAIT -gt $TIMEOUT ]]; then
           echo "Timed out waiting for $NAME to stop"
-          exit 1
+          echo "killing it"
+          killall -9 serf
+        #  exit 1
         fi
         findPid
       done
