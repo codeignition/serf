@@ -30,9 +30,24 @@ start() {
     findPid
     
     if [ "" = "$FOUND_PID" ]; then
-      su -l $SERF_USER -c "$SERF_BINARY agent --config-dir $SERF_AGENT_CONF_DIR >>$SERF_AGENT_LOG 2>&1 &"
-      
-      if [[ $? -ne 0 ]]; then
+      serf_start=su -l $SERF_USER -c "$SERF_BINARY agent --config-dir $SERF_AGENT_CONF_DIR >>$SERF_AGENT_LOG 2>&1 &"
+
+      counter=0
+      echo "Joining cluster..!"
+      while true; do
+        if [[ `serf members | wc -l` -gt 1 ]]; then
+             echo "Joined cluster..!"
+             break;
+        fi
+        echo "Waiting for serf cluster"
+        sleep $SLEEP_TIME;
+        counter=$((counter+1))
+        if [[ "$counter" -gt 20 ]]; then
+          echo "Counter: $counter times reached; giving up!"
+          break;
+        fi
+      done
+      if [[ $serf_start -ne 0 ]]; then
         echo "Error starting $NAME"
         exit 1
       fi
@@ -63,10 +78,8 @@ stop() {
         sleep $SLEEP_TIME
         CURRENT_WAIT=$(($CURRENT_WAIT+$SLEEP_TIME))
         if [[ $CURRENT_WAIT -gt $TIMEOUT ]]; then
-          echo "Timed out waiting for $NAME to stop"
-          echo "killing it"
-          killall -9 serf
-        #  exit 1
+          echo "Timed out waiting for $NAME to stop, please check serf process"
+          exit 1
         fi
         findPid
       done
