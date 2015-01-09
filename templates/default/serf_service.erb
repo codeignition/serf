@@ -30,7 +30,7 @@ start() {
     findPid
     
     if [ "" = "$FOUND_PID" ]; then
-      serf_start=su -l $SERF_USER -c "$SERF_BINARY agent --config-dir $SERF_AGENT_CONF_DIR >>$SERF_AGENT_LOG 2>&1 &"
+      serf_start=`su -l $SERF_USER -c "$SERF_BINARY agent --config-dir $SERF_AGENT_CONF_DIR >>$SERF_AGENT_LOG 2>&1 &"`
 
       counter=0
       echo "Joining cluster..!"
